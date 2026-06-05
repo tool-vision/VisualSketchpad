@@ -1,0 +1,25 @@
+{
+  "name": "all-nonvision-smoke",
+  "description": "One instance from each available non-vision paper task family.",
+  "environment": {
+    "OPENAI_MODEL": "gpt-4o"
+  },
+  "requirements": {
+    "api_key": true,
+    "vision_servers": false
+  },
+  "defaults": {
+    "output_dir": "outputs_repro/all_nonvision_smoke",
+    "max_instances": 1,
+    "start_index": 0
+  },
+  "tasks": [
+    { "name": "geometry" },
+    { "name": "graph_connectivity" },
+    { "name": "graph_isomorphism" },
+    { "name": "graph_maxflow" },
+    { "name": "math_convexity" },
+    { "name": "math_parity" },
+    { "name": "winner_id" }
+  ]
+}

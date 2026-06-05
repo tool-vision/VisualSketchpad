@@ -1,0 +1,33 @@
+{
+  "name": "all-available-task-smoke",
+  "description": "One instance from every task family currently present in tasks/. Requires reachable vision expert servers.",
+  "environment": {
+    "OPENAI_MODEL": "gpt-4o",
+    "SOM_ADDRESS": "http://localhost:8080/",
+    "GROUNDING_DINO_ADDRESS": "http://localhost:8081/",
+    "DEPTH_ANYTHING_ADDRESS": "http://localhost:8082/"
+  },
+  "requirements": {
+    "api_key": true,
+    "vision_servers": true,
+    "server_timeout_seconds": 5
+  },
+  "defaults": {
+    "output_dir": "outputs_repro/all_available_task_smoke",
+    "max_instances": 1,
+    "start_index": 0
+  },
+  "tasks": [
+    { "name": "geometry" },
+    { "name": "graph_connectivity" },
+    { "name": "graph_isomorphism" },
+    { "name": "graph_maxflow" },
+    { "name": "math_convexity" },
+    { "name": "math_parity" },
+    { "name": "winner_id" },
+    { "name": "blink_depth" },
+    { "name": "blink_jigsaw" },
+    { "name": "blink_spatial" },
+    { "name": "mmvp" }
+  ]
+}

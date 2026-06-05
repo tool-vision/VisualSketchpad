@@ -59,6 +59,8 @@ From the logs, you can also copy the server address.
 Make sure you launched all of them before running the vision agent.
 One server can serve multiple agents.
 
+For pipeline-oriented setup, remote URLs, and readiness checks, also see `../VISION_SERVERS.md`.
+
 For SOM:
 ```bash
 cd simplified_som/
