@@ -6,3 +6,10 @@ vision_experts/simplified_som/ops/.DS_Store
 .DS_Store
 .DS_Store
 .DS_Store
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+outputs_repro/
+.cache/
+jupyter_gateway.log
