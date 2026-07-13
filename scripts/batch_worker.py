@@ -117,6 +117,28 @@ def main():
     )
     args = parser.parse_args()
 
+    # Fail fast on unreachable endpoints (LLM + the three vision servers);
+    # otherwise every instance would burn a full agent attempt and error out.
+    import urllib.request
+
+    checks = []
+    base_url = os.environ.get("OPENAI_BASE_URL")
+    if base_url:
+        checks.append(("LLM", base_url.rstrip("/") + "/models"))
+    for env_name, default in (
+        ("SOM_ADDRESS", "http://localhost:8080/"),
+        ("GROUNDING_DINO_ADDRESS", "http://localhost:8081/"),
+        ("DEPTH_ANYTHING_ADDRESS", "http://localhost:8082/"),
+    ):
+        checks.append((env_name, os.environ.get(env_name, default)))
+    for label, url in checks:
+        try:
+            with urllib.request.urlopen(url, timeout=10) as r:
+                r.read(64)
+        except Exception as exc:
+            print(f"FATAL: {label} endpoint {url} unreachable: {exc}", flush=True)
+            sys.exit(2)
+
     instances = []
     with open(args.manifest) as f:
         for line in f:
