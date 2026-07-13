@@ -55,10 +55,12 @@ def detection(image, text, box_threshold=0.35, text_threshold=0.25):
         text_threshold=text_threshold
     )
     
+    # gradio's JSON output cannot serialize torch tensors (they get
+    # stringified on gradio>=4), so convert to plain lists
     ret_json = {
-        "boxes": boxes,
-        "logits": logits,
-        "phrases": phrases
+        "boxes": boxes.tolist(),
+        "logits": [float(l) for l in logits],
+        "phrases": list(phrases)
     }
     
     annotated_frame = annotate(image_source=image_source, boxes=boxes, logits=range(1, len(boxes)+1), phrases=phrases)

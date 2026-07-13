@@ -55,7 +55,14 @@ def inference(image, slider, alpha, label_mode, anno_mode, *args, **kwargs):
                                                  text_size, hole_scale, island_scale, semantic, 
                                                  label_mode=label_mode, alpha=alpha, anno_mode=anno_mode, *args, **kwargs)
         
-        return output, mask
+        # keep only JSON-serializable scalar fields; the client only needs
+        # 'bbox' (numpy 'segmentation' arrays would break gradio's JSON output)
+        mask_meta = [
+            {k: v for k, v in m.items()
+             if isinstance(v, (int, float, str, list, tuple))}
+            for m in mask
+        ]
+        return output, mask_meta
     
 
 def gradio_interface(image, gradularity, alpha, label_mode, anno_mode):
