@@ -24,13 +24,26 @@ MAX_REPLY = 10
 # set up the LLM for the agent
 os.environ.setdefault("AUTOGEN_USE_DOCKER", "False")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o")
+# Optional OpenAI-compatible endpoint (e.g. a local vLLM server): set
+# OPENAI_BASE_URL=http://localhost:8222/v1 to route requests there.
+OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL")
+
+
+def _make_config_entry(api_key):
+    entry = {"model": OPENAI_MODEL, "temperature": 0.0, "api_key": api_key}
+    if OPENAI_BASE_URL:
+        entry["base_url"] = OPENAI_BASE_URL
+    return entry
+
+
 config_list = []
 for env_name in ("OPENAI_API_KEY", "OPENAI_API_KEY_BACKUP"):
     api_key = os.environ.get(env_name)
     if api_key:
-        config_list.append({"model": OPENAI_MODEL, "temperature": 0.0, "api_key": api_key})
+        config_list.append(_make_config_entry(api_key))
 if not config_list:
-    config_list.append({"model": OPENAI_MODEL, "temperature": 0.0, "api_key": None})
+    # vLLM does not check the key; use a placeholder when targeting a local server
+    config_list.append(_make_config_entry("empty" if OPENAI_BASE_URL else None))
 llm_config={"cache_seed": None, "config_list": config_list}
 
 
