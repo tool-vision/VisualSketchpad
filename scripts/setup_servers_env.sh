@@ -49,4 +49,11 @@ pip install -r requirements.txt
 # gradio for the servers + misc deps used by server scripts
 pip install gradio==5.38.2 gradio_client==1.11.0 supervision opencv-python
 
+# post-install fixes:
+# - wandb (pulled in by semantic-sam via old timm) crashes on import with new
+#   protobuf; timm guards `import wandb` so removing it is safe
+# - gradio upgrades huggingface-hub to >=1.0 which transformers 4.34 rejects
+pip uninstall -y wandb
+pip install "huggingface-hub==0.36.0"
+
 echo "SERVERS_ENV_READY"

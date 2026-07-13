@@ -29,8 +29,16 @@ OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o")
 OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL")
 
 
+OPENAI_MAX_TOKENS = int(os.environ.get("OPENAI_MAX_TOKENS", "4096"))
+
+
 def _make_config_entry(api_key):
-    entry = {"model": OPENAI_MODEL, "temperature": 0.0, "api_key": api_key}
+    entry = {
+        "model": OPENAI_MODEL,
+        "temperature": 0.0,
+        "max_tokens": OPENAI_MAX_TOKENS,
+        "api_key": api_key,
+    }
     if OPENAI_BASE_URL:
         entry["base_url"] = OPENAI_BASE_URL
     return entry
