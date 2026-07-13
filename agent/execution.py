@@ -1,4 +1,4 @@
-import os, sys
+import os, signal, subprocess, sys
 import pickle
 from autogen.coding import CodeBlock
 from autogen.coding.jupyter import JupyterCodeExecutor, LocalJupyterServer
@@ -127,4 +127,31 @@ class CodeExecutor:
 
 
     def cleanup(self):
-        self.server.stop()
+        # LocalJupyterServer.stop() SIGINTs the kernel gateway and then waits
+        # with no timeout; a gateway with a busy kernel can ignore SIGINT and
+        # block the worker forever. Bound the graceful stop and escalate.
+        proc = getattr(self.server, "_subprocess", None)
+        if proc is None:
+            self.server.stop()
+            return
+        try:
+            child_pids = []
+            try:
+                with open(f"/proc/{proc.pid}/task/{proc.pid}/children") as f:
+                    child_pids = [int(p) for p in f.read().split()]
+            except OSError:
+                pass
+            if proc.poll() is None:
+                proc.send_signal(signal.SIGINT)
+            try:
+                proc.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait(timeout=5)
+            for pid in child_pids:  # orphaned ipykernel children
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except OSError:
+                    pass
+        except Exception:
+            pass
