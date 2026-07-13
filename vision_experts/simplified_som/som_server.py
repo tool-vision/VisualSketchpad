@@ -1,3 +1,4 @@
+import os
 import gradio as gr
 import torch
 import argparse
@@ -68,4 +69,6 @@ demo = gr.Interface(fn=gradio_interface, inputs=[gr.Image(type="pil"),
                     outputs=[gr.Image(type="pil"), "json"]
                     )
                     
-demo.launch(share=True, server_name="localhost", server_port=8080)
+demo.launch(share=os.environ.get("GRADIO_SHARE", "0") == "1",
+            server_name=os.environ.get("GRADIO_HOST", "127.0.0.1"),
+            server_port=int(os.environ.get("GRADIO_PORT", 8080)))

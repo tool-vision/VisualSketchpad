@@ -1,3 +1,4 @@
+import os
 from groundingdino.util.inference import load_model, load_image, predict, annotate
 import cv2
 import torch
@@ -74,4 +75,6 @@ demo = gr.Interface(fn=detection, inputs=[gr.Image(type="filepath"),
                     outputs=[gr.Image(type="pil"), "json"]
                     )
                     
-demo.launch(share=True, server_name="localhost", server_port=8081)
+demo.launch(share=os.environ.get("GRADIO_SHARE", "0") == "1",
+            server_name=os.environ.get("GRADIO_HOST", "127.0.0.1"),
+            server_port=int(os.environ.get("GRADIO_PORT", 8081)))

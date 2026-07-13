@@ -21,18 +21,26 @@ pip install torch==2.1.2 torchvision==0.16.2 --index-url https://download.pytorc
 conda install -y -c nvidia/label/cuda-12.1.1 cuda-toolkit
 export CUDA_HOME="$CONDA_PREFIX"
 
-# Semantic-SAM + detectron2 fork
-pip install git+https://github.com/UX-Decoder/Semantic-SAM.git@package
-pip install 'git+https://github.com/MaureenZOU/detectron2-xyz.git'
+# cuda 12.1 nvcc rejects host gcc > 12
+conda install -y -c conda-forge "gcc_linux-64=12" "gxx_linux-64=12"
+export CC="$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-gcc"
+export CXX="$CONDA_PREFIX/bin/x86_64-conda-linux-gnu-g++"
+
+# detectron2's setup.py needs pkg_resources (removed in setuptools>=81)
+pip install "setuptools<81"
+
+# Semantic-SAM + detectron2 fork (both need torch at build time -> no build isolation)
+pip install --no-build-isolation git+https://github.com/UX-Decoder/Semantic-SAM.git@package
+pip install --no-build-isolation 'git+https://github.com/MaureenZOU/detectron2-xyz.git'
 
 # Deformable-DETR CUDA ops
 export TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0+PTX"
 cd "${REPO_ROOT}/vision_experts/simplified_som/ops"
 sh make.sh
 
-# GroundingDINO
+# GroundingDINO (setup.py imports torch -> no build isolation)
 cd "${REPO_ROOT}/vision_experts/GroundingDINO"
-pip install -e .
+pip install --no-build-isolation -e .
 
 # Depth-Anything
 cd "${REPO_ROOT}/vision_experts/Depth-Anything"

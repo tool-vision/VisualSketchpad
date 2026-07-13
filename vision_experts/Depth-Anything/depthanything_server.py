@@ -55,7 +55,9 @@ demo = gr.Interface(fn=predict_depthmap, inputs=[gr.Image()],
                     outputs=[gr.Image(type="pil")]
                     )
                     
-demo.launch(share=True, server_name="localhost", server_port=8082)
+demo.launch(share=os.environ.get("GRADIO_SHARE", "0") == "1",
+            server_name=os.environ.get("GRADIO_HOST", "127.0.0.1"),
+            server_port=int(os.environ.get("GRADIO_PORT", 8082)))
 
 
 
