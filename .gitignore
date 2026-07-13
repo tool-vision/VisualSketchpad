@@ -13,3 +13,7 @@ __pycache__/
 outputs_repro/
 .cache/
 jupyter_gateway.log
+# model checkpoints and server runtime artifacts (baseline repro)
+*.pth
+outputs_servers/
+vision_experts/simplified_som/ops/build/
