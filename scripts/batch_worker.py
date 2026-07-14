@@ -40,14 +40,21 @@ def _alarm_handler(signum, frame):
 
 
 def extract_answer(messages):
-    """Pull the final ANSWER: ... out of the planner message trace."""
+    """Pull the final ANSWER: ... out of the planner message trace.
+
+    Only assistant (planner) messages count: user/feedback messages contain
+    the literal template 'reply with ANSWER: <your answer> and ends with
+    TERMINATE', which must never be mistaken for an answer.
+    """
     if isinstance(messages, dict):
         if "error" in messages:
             return None
         messages = messages.get("messages", [])
     answer = None
     for msg in messages:
-        content = msg.get("content") if isinstance(msg, dict) else msg
+        if not isinstance(msg, dict) or msg.get("role") != "assistant":
+            continue
+        content = msg.get("content")
         if isinstance(content, list):  # multimodal content blocks
             content = " ".join(
                 part.get("text", "") for part in content if isinstance(part, dict)
@@ -56,7 +63,9 @@ def extract_answer(messages):
             continue
         m = ANSWER_RE.search(content)
         if m:
-            answer = m.group(1).strip()
+            candidate = m.group(1).strip()
+            if candidate and "<your answer>" not in candidate:
+                answer = candidate
     return answer
 
 
