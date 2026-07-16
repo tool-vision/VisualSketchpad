@@ -39,6 +39,44 @@ def _alarm_handler(signum, frame):
     raise InstanceTimeout("instance timed out")
 
 
+def _kill_descendant_gateways():
+    """SIGKILL any jupyter-kernelgateway (and its kernels) under this process.
+
+    Deadlock breaker of last resort: a lost websocket message can leave the
+    executor blocked on a reply from an idle kernel forever — a state SIGALRM
+    cannot interrupt reliably. Killing the gateway fails the pending execute()
+    call, which returns the instance through its normal error path.
+    """
+    my_pid = os.getpid()
+    try:
+        children = [
+            int(p)
+            for p in open(f"/proc/{my_pid}/task/{my_pid}/children").read().split()
+        ]
+    except OSError:
+        return
+    for pid in children:
+        try:
+            with open(f"/proc/{pid}/cmdline") as f:
+                cmdline = f.read()
+        except OSError:
+            continue
+        if "jupyter-kernelgateway" not in cmdline:
+            continue
+        try:
+            grandchildren = [
+                int(p)
+                for p in open(f"/proc/{pid}/task/{pid}/children").read().split()
+            ]
+        except OSError:
+            grandchildren = []
+        for gpid in grandchildren + [pid]:
+            try:
+                os.kill(gpid, signal.SIGKILL)
+            except OSError:
+                pass
+
+
 def extract_answer(messages):
     """Pull the final ANSWER: ... out of the planner message trace.
 
@@ -85,6 +123,13 @@ def solve_instance(job):
     result = {"id": instance_id, "answer": None, "error": None}
     old_handler = signal.signal(signal.SIGALRM, _alarm_handler)
     signal.alarm(timeout)
+    # watchdog: if SIGALRM cannot break a websocket deadlock, kill the
+    # gateway tree after a grace period so the instance errors out normally
+    import threading
+
+    watchdog = threading.Timer(timeout + 120, _kill_descendant_gateways)
+    watchdog.daemon = True
+    watchdog.start()
     try:
         from main import run_agent
 
@@ -98,6 +143,7 @@ def solve_instance(job):
     except Exception:
         result["error"] = traceback.format_exc()
     finally:
+        watchdog.cancel()
         signal.alarm(0)
         signal.signal(signal.SIGALRM, old_handler)
 
