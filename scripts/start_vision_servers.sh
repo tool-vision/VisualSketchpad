@@ -13,6 +13,9 @@ source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate sketchpad_servers
 
 export CUDA_VISIBLE_DEVICES="$GPU_ID"
+# keep gradio server cache + temp staging off the shared /tmp tmpfs (1M inode cap)
+export GRADIO_TEMP_DIR=/local1/bryanzhou008/tmp/gradio_server_cache
+export TMPDIR=/local1/bryanzhou008/tmp/gradio_staging
 export GRADIO_SHARE=0
 export GRADIO_HOST=127.0.0.1
 
